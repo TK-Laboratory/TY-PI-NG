@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<!-- 
+  「TYπNG」
+  Version: 1.0.0 (更新日: 2026-06-08)
+  Author: TK Lab.(@TK_Lab_)
+  Description: 円周率を打つだけのタイピングゲーム。
+  License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
+  Credits:
+    - フォント：Roboto Mono (Google Fonts)
+    - 円周率生成アルゴリズム：Spigot Algorithm
+    - ランキング管理：Firebase (Google)
+  ChangeLog:
+    - 2026-06-08 (v1.0.0) ・初版公開
+-->
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYπNG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+        
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #0a001f, #1a0033);
+            color: #00ffcc;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 { 
+            margin: 24px 0 6.4px; 
+            font-size: 3.36em; 
+            text-shadow: 0 0 32px #00ffcc; 
+        }
+
+        .ranking-title {
+            font-size: 3.36em;
+            text-shadow: 0 0 32px #00ffcc;
+            margin: 8px 0 20px 0;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .mode-select { 
+            margin: 12px 0 20px; 
+            display: flex; 
+            gap: 14.4px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+        }
+        
+        .mode-btn {
+            padding: 12.8px 25.6px; 
+            font-size: 1.24em;
+            background: #220033; 
+            color: #ff99ee;
+            border: 2.4px solid #cc44aa; 
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        
+        .mode-btn.active { 
+            background: #ff0088; 
+            color: white; 
+            border-color: #ff66bb; 
+            transform: scale(1.08); 
+        }
+        
+        .mode-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ranking-tab {
+            padding: 12.8px 25.6px; 
+            font-size: 1.24em;
+            background: #220033; 
+            color: #ff99ee;
+            border: 2.4px solid #cc44aa; 
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 4.8px;
+        }
+        
+        .ranking-tab.active { 
+            background: #ff0088; 
+            color: white; 
+            border-color: #ff66bb; 
+            transform: scale(1.08); 
+        }
+
+        .upper-info { 
+            width: 92%; 
+            max-width: 960px; 
+            margin-bottom: 4.8px; 
+        }
+        
+        .info { 
+            display: flex; 
+            justify-content: center; 
+            gap: 33.6px; 
+            margin-bottom: 9.6px; 
+            font-size: 1.4em; 
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 104px;
+        }
+
+        .info-label {
+            color: #00ffcc;
+            margin-bottom: 3.2px;
+            white-space: nowrap;
+        }
+
+        .info-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2em;
+        }
+
+        .info-number {
+            font-variant-numeric: tabular-nums;
+            min-width: 3ch;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .info-unit {
+            font-size: 0.736em;
+            opacity: 0.85;
+            white-space: nowrap;
+        }
+
+        #message { 
+            min-height: 44px; 
+            font-size: 1.52em; 
+            font-weight: bold; 
+            text-align: center; 
+            margin-bottom: 4.8px; 
+        }
+
+        #pi-display {
+            width: fit-content;
+            background: rgba(0,0,0,0.92);
+            border: 3.2px solid #00ffcc;
+            border-radius: 16px;
+            padding: 16px 19.2px;
+            font-size: 1.68em;
+            line-height: 1.75;
+            min-height: 188px;
+            max-height: 188px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 0 48px rgba(0,255,204,0.5);
+            white-space: pre;
+            font-variant-ligatures: none;
+            font-family: 'Roboto Mono', 'Courier New', 'Lucida Console', monospace;
+            letter-spacing: 0;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+        
+        #pi-display.flash-pink {
+            border-color: #ff0088 !important;
+            box-shadow: 0 0 64px rgba(255, 0, 136, 0.95) !important;
+        }
+
+        .line {
+            height: 1.4em;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items:center;
+            white-space: pre;
+            width: fit-content;
+        }
+        
+        .typed { color: #006655; display: inline-block; min-width: 1ch; text-align: center; }
+        .typed-mistake { color: #cc4488; display: inline-block; min-width: 1ch; text-align: center; }
+        .remaining { color: #88ffdd; display: inline-block; min-width: 1ch; text-align: center; }        
+
+        .current {
+            position: relative; color: white; font-weight: 700; display: inline-block; 
+            min-width: 1ch; text-align: center; animation: blink 0.8s infinite; z-index: 1;
+        }
+        .current::before {
+            content: ''; position: absolute; top: -3.2px; left: -1.6px; right: -1.6px; bottom: -3.2px;
+            background: #ff0088; border-radius: 4.8px; z-index: -1;
+        }
+
+        .current-ended, .current-ended-mistake {
+            position: relative !important; 
+            font-weight: 700 !important; 
+            display: inline-block !important; 
+            min-width: 1ch !important; 
+            text-align: center !important; 
+            z-index: 2 !important;
+        }
+        .current-ended { color: black !important; }
+        .current-ended::before { 
+            content: '' !important; position: absolute !important; top: -3.2px !important; left: -1.6px !important; 
+            right: -1.6px !important; bottom: -3.2px !important; background: #00aa88 !important; 
+            border-radius: 4.8px !important; z-index: -1 !important;
+        }
+        .current-ended-mistake { color: #cc4488 !important; }
+
+        body.modal-open .current,
+        body.modal-open .current::before,
+        body.modal-open .current-ended,
+        body.modal-open .current-ended::before,
+        body.modal-open .current-ended-mistake {
+            display: none !important;
+            animation: none !important;
+        }
+
+        button#main-reset, #tweet-btn, #ranking-btn {
+            padding: 14.4px 40px; font-size: 1.36em; border: none; border-radius: 40px;
+            cursor: pointer; font-weight: bold; margin-top: 14.4px; 
+        }
+        #main-reset { background: #00cc99; color: #000; }
+        #tweet-btn { background: #1da1f2; color: white; margin-left: 16px; }
+        #ranking-btn { 
+            background: #00ffcc; 
+            color: #000; 
+            margin-left: 16px; 
+        }
+
+        #ranking-btn.register-mode {
+            background: #ffd700 !important;
+            color: #000 !important;
+            box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+        }
+
+        .pi-ruby { ruby-position: over; ruby-align: center; }
+        .pi-ruby rt { 
+            font-size: 22.4px; 
+            margin-bottom: -20px; 
+            vertical-align: -9.6px; 
+        }
+
+        #ranking-container {
+            width: fit-content;
+            max-width: 100%;
+            height: 312px;
+            min-height: 312px;
+            max-height: 312px;
+            margin: 0 auto;
+            background: rgba(10, 0, 31, 0.6);
+            border: 2.4px solid #00ffcc;
+            border-radius: 12.8px;
+            padding: 0 16px 16px 16px;
+            overflow: auto;
+            overflow-x: hidden;
+            scrollbar-gutter: stable;
+            box-sizing: border-box;
+            box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
+        }
+        #ranking-container {
+            scrollbar-width: thin;
+            scrollbar-color: #00ffcc rgba(26, 0, 51, 0.9);
+        }
+
+        #ranking-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        #ranking-container::-webkit-scrollbar-track {
+            background: rgba(26, 0, 51, 0.85);
+            border-radius: 10px;
+            margin: 4px 0;
+        }
+
+        #ranking-container::-webkit-scrollbar-thumb {
+            background: #00ffcc;
+            border-radius: 10px;
+            border: 2px solid rgba(26, 0, 51, 0.95);
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+
+        #ranking-container::-webkit-scrollbar-thumb:hover {
+            background: #ff0088;
+            box-shadow: 0 0 12px rgba(255, 0, 136, 0.8);
+        }
+
+        #ranking-container::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+        #ranking-table {
+            width: fit-content;
+            margin: 0 auto;
+            border-collapse: collapse;
+            font-size: 1.16em;
+            line-height: 1.8;
+            table-layout: auto;
+        }
+        #ranking-table th, #ranking-table td {
+            padding: 6.4px 20px;
+            white-space: nowrap;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+        }
+        #ranking-table th {
+            color: #ffdd88;
+            font-weight: bold;
+            border-bottom: 1.6px solid #00ffcc;
+            padding: 16px 20px 9.6px 20px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            background: #1a0033;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(26, 0, 51, 0.85);
+        }
+        #ranking-table td {
+            color: #00ffcc;
+        }
+
+        #ranking-table th:nth-child(1), #ranking-table td:nth-child(1) { min-width: 30px; }
+        #ranking-table th:nth-child(2), #ranking-table td:nth-child(2) { min-width: 230px; }
+        #ranking-table th:nth-child(3), #ranking-table td:nth-child(3) { min-width: 60px; }
+        #ranking-table th:nth-child(4), #ranking-table td:nth-child(4) { min-width: 40px; }
+        #ranking-table th:nth-child(5), #ranking-table td:nth-child(5) { min-width: 60px; }
+        #ranking-table th:nth-child(6), #ranking-table td:nth-child(6) { min-width: 120px; }
+        #ranking-table th:nth-child(7), #ranking-table td:nth-child(7) { min-width: 180px; }
+
+        #ranking-table th:nth-child(3), #ranking-table th:nth-child(4),
+        #ranking-table th:nth-child(5), #ranking-table th:nth-child(6),
+        #ranking-table td:nth-child(3), #ranking-table td:nth-child(4),
+        #ranking-table td:nth-child(5), #ranking-table td:nth-child(6) {
+            text-align: right;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 24px 20px 32px;
+            text-align: center;
+            font-size: 0.96em;
+            color: #00ccaa;
+            width: 100%;
+            max-width: 960px;
+            border-top: 1px solid rgba(0, 255, 204, 0.2);
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+
+        footer a {
+            color: #1da1f2;
+            text-decoration: underline;
+        }
+
+        footer a:hover {
+            color: #4fc3f7;
+        }
+
+        #privacy-container {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        #privacy-toggle {
+            cursor: pointer;
+            font-size: 15px;
+            color: #1da1f2;
+            display: inline-block;
+            text-decoration: underline;
+        }
+
+        #privacy-toggle:hover {
+            color: #4fc3f7;
+        }
+
+        #privacy-content {
+            display: none;
+            margin-top: 12px;
+            text-align: left;
+            color: #00ccaa;
+            line-height: 1.6;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+            background: rgba(10, 0, 31, 0.6);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        @keyframes blink { 0%,100% {opacity:1;} 50% {opacity:0.7;} }
+    </style>
+</head>
+<body>
+    <!-- ここからHTML本体（前回と同じ） -->
+    <h1>TY<ruby class="pi-ruby"><span style="color: #ff0088;">π</span><rt>PI</rt></ruby>NG</h1>
+
+    <div class="mode-select">
+        <button class="mode-btn" data-time="15">15秒</button>
+        <button class="mode-btn active" data-time="30">30秒</button>
+        <button class="mode-btn" data-time="60">60秒</button>
+        <button class="mode-btn" data-time="0">エンドレス</button>
+    </div>
+
+    <div class="upper-info">
+        <div class="info">
+            <div class="info-item"><div class="info-label">時間</div><div class="info-value"><span class="info-number" id="time">0</span><span class="info-unit">秒</span></div></div>
+            <div class="info-item"><div class="info-label">文字数</div><div class="info-value"><span class="info-number" id="chars">0</span><span class="info-unit">文字</span></div></div>
+            <div class="info-item"><div class="info-label">ミス</div><div class="info-value"><span class="info-number" id="mistakes">0</span><span class="info-unit">回</span></div></div>
+            <div class="info-item"><div class="info-label">速度</div><div class="info-value"><span class="info-number" id="wpm">---</span><span class="info-unit">文字/分</span></div></div>
+            <div class="info-item"><div class="info-label">正確率</div><div class="info-value"><span class="info-number" id="accuracy">---</span><span class="info-unit">％</span></div></div>
+        </div>
+        <div id="message">Let's tyπng!</div>
+    </div>
+
+    <div id="pi-display"></div>
+
+    <div style="display: flex; gap: 16px; margin-top: 14.4px; flex-wrap: wrap; justify-content: center;">
+        <button id="main-reset" onclick="resetGame()">もう一度（Esc）</button>
+        <button id="ranking-btn" onclick="handleRankingButton()">ランキングを見る（R）</button>
+        <button id="tweet-btn" onclick="tweetResult()">ツイート（X）</button>
+    </div>
+
+    <!-- Privacy Policy -->
+    <div id="privacy-container">
+        <div id="privacy-toggle">Privacy Policy (P)</div>
+        <div id="privacy-content">
+            <p>「TYπNG」は、匿名でプレイ可能です。<br>
+            ランキング登録時はブラウザ固有の匿名ID（個人を特定できない一時的なID）を使用し、メールアドレスや個人情報は一切収集しません。<br>
+            登録データ（表示名・モード・文字数・ミス・正確率・プレイ時間・登録日時）はランキング表示のみに使用し、第三者に提供することはありません。<br>
+            データはFirebase（Google LLC）で管理されており、Googleのプライバシーポリシーが適用されます。<br>
+            ブラウザのキャッシュクリア等で匿名IDが変わる場合、過去記録が引き継がれない可能性があります。</p>
+        </div>
+    </div>
+
+    <!-- Ranking Modal -->
+    <div id="ranking-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); align-items: center; justify-content: center;">
+        <div style="background: #1a0033; border: 3.2px solid #00ffcc; border-radius: 16px; 
+                    padding: 24px; 
+                    max-width: 1080px;
+                    width: fit-content;
+                    max-height: 92vh; 
+                    overflow: hidden; 
+                    color: #00ffcc;">
+            
+            <h2 class="ranking-title">
+                TY<ruby class="pi-ruby"><span style="color: #ff0088;">π</span><rt>PI</rt></ruby>NG ランキング
+            </h2>
+            
+            <div id="ranking-tabs" style="display: flex; justify-content: center; gap: 14.4px; margin-bottom: 24px; flex-wrap: wrap;"></div>
+            
+            <div id="ranking-container">
+                <table id="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>名前</th>
+                            <th>文字数</th>
+                            <th>ミス</th>
+                            <th>正確率</th>
+                            <th>プレイ時間</th>
+                            <th>登録日時</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body"></tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin-top: 28px;">
+                <button onclick="hideRanking()" style="padding: 11.2px 40px; font-size: 1.28em; background: #00cc99; color: #000; border: none; border-radius: 40px; cursor: pointer; font-weight: bold;">閉じる（Esc）</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Input Modal -->
+    <div id="name-input-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1100; align-items: center; justify-content: center;">
+        <div style="background: #1a0033; border: 3.2px solid #00ffcc; border-radius: 16px; padding: 32px; max-width: 416px; width: 92%; color: #00ffcc; text-align: center; box-shadow: 0 0 64px rgba(0, 255, 204, 0.6);">
+            <h2 style="margin: 0 0 20px 0; font-size: 1.92em;">ランキング登録</h2>
+            <p style="margin-bottom: 20px; font-size: 1.08em; opacity: 0.9;">表示名を入力してください<br><span style="font-size: 0.72em; opacity: 0.7;">（空欄で匿名）</span></p>
+            
+            <input type="text" id="name-input" maxlength="20" 
+                   style="width: 100%; padding: 14.4px; font-size: 1.44em; font-family: 'Roboto Mono', monospace; 
+                          background: #0a001f; border: 2.4px solid #00ffcc; border-radius: 9.6px; color: #00ffcc; 
+                          text-align: center; margin-bottom: 24px; box-sizing: border-box;"
+                   placeholder="名前（最大20文字）" autocomplete="off">
+            
+            <div style="display: flex; gap: 16px; justify-content: center;">
+                <button onclick="cancelNameInput()" 
+                        style="padding: 12.8px 32px; font-size: 1.24em; background: #220033; color: #ff99ee; 
+                               border: 2.4px solid #cc44aa; border-radius: 40px; cursor: pointer; font-weight: bold;">
+                    キャンセル（Esc）
+                </button>
+                <button onclick="confirmNameInput()" 
+                        style="padding: 12.8px 32px; font-size: 1.24em; background: #00ffcc; color: #000; 
+                               border: none; border-radius: 40px; cursor: pointer; font-weight: bold;">
+                    登録（Enter）
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
+        ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
+        プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
+        Version 1.0.0
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMurv015sBLTqo08MC2Bf9oDiDePTK1MU",
+            authDomain: "pi-ranking.firebaseapp.com",
+            projectId: "pi-ranking",
+            storageBucket: "pi-ranking.firebasestorage.app",
+            messagingSenderId: "215268840748",
+            appId: "1:215268840748:web:c7c063a218ec953b208889"
+        };
+
+        let currentUser = null;
+        let db = null;
+        let addDocFn, queryFn, orderByFn, limitFn, getDocsFn, whereFn, collectionFn;
+
+        let personalBest = new Map();
+        let myRank = null;
+        let personalBestLoaded = false;
+
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function formatAccuracy(acc, mistakes) {
+            if (mistakes === 0) return '100';
+            const num = typeof acc === 'number' ? acc : parseFloat(acc);
+            return isNaN(num) ? '---' : num.toFixed(1);
+        }
+
+        async function initFirebase() {
+            try {
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
+                const { getAuth, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+                const fs = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js");
+                const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js");
+
+                const app = initializeApp(firebaseConfig);
+                initializeAppCheck(app, {
+                    provider: new ReCaptchaEnterpriseProvider("6LefLREtAAAAAIlfyrk_1SEJg7Vc7J6XSDTb9fE_"),
+                    isTokenAutoRefreshEnabled: true
+                });
+
+                const auth = getAuth(app);
+                db = fs.getFirestore(app);
+
+                addDocFn = fs.addDoc;
+                queryFn = fs.query;
+                orderByFn = fs.orderBy;
+                limitFn = fs.limit;
+                getDocsFn = fs.getDocs;
+                whereFn = fs.where;
+                collectionFn = fs.collection;
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        loadAllPersonalBest();
+                    } else {
+                        signInAnonymously(auth).catch(console.error);
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase init error:", e);
+            }
+        }
+
+        async function loadAllPersonalBest() {
+            if (!currentUser || !db) return;
+            const modes = [15, 30, 60, 0];
+            let successCount = 0;
+            for (const mode of modes) {
+                if (await loadPersonalBest(mode)) successCount++;
+            }
+            if (successCount > 0) personalBestLoaded = true;
+        }
+
+        async function loadPersonalBest(mode) {
+            if (!currentUser || !db) {
+                personalBest.set(mode, {chars: 0, mistakes: 999999, displayName: ''});
+                return false;
+            }
+            try {
+                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", mode), whereFn("uid", "==", currentUser.uid), orderByFn("chars", "desc"), limitFn(1));
+                const snapshot = await getDocsFn(q);
+                if (snapshot.empty) {
+                    personalBest.set(mode, {chars: 0, mistakes: 999999, displayName: ''});
+                } else {
+                    const data = snapshot.docs[0].data();
+                    personalBest.set(mode, {chars: data.chars, mistakes: data.mistakes, displayName: data.displayName || ''});
+                }
+                return true;
+            } catch (e) {
+                console.error(`自己ベスト取得エラー (mode:${mode})`, e);
+                personalBest.set(mode, {chars: 0, mistakes: 999999, displayName: ''});
+                return false;
+            }
+        }
+
+        function getSortComparator(isEndless) {
+            return (a, b) => {
+                if (a.chars !== b.chars) return b.chars - a.chars;
+                if (a.mistakes !== b.mistakes) return a.mistakes - b.mistakes;
+                if (isEndless) return (a.elapsed || Infinity) - (b.elapsed || Infinity);
+                return 0;
+            };
+        }
+
+        function getTieKey(d, isEndless) {
+            if (!isEndless) return `${d.chars}-${d.mistakes}`;
+            return `${d.chars}-${d.mistakes}-${d.elapsed || Infinity}`;
+        }
+
+        async function getMyRankAfterRegister() {
+            if (!currentUser || !db) return null;
+            try {
+                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", modeTime), orderByFn("chars", "desc"), limitFn(50));
+                const snapshot = await getDocsFn(q);
+                const best = new Map();
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const key = d.uid;
+                    if (!best.has(key) || d.chars > best.get(key).chars) best.set(key, d);
+                });
+                const isEndless = modeTime === 0;
+                let records = Array.from(best.values());
+                records.sort(getSortComparator(isEndless));
+                let rank = 1, prevTieKey = null;
+                for (let i = 0; i < records.length; i++) {
+                    const d = records[i];
+                    const currentTieKey = getTieKey(d, isEndless);
+                    if (i > 0 && currentTieKey === prevTieKey) {} else rank = i + 1;
+                    if (d.uid === currentUser.uid) return rank;
+                    prevTieKey = currentTieKey;
+                }
+            } catch (e) { console.error("順位取得エラー:", e); }
+            return null;
+        }
+
+        async function isFirstPlaceNow() {
+            if (!currentUser || !db || !personalBestLoaded || !isNewRecordForCurrentScore()) return false;
+            try {
+                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", modeTime), orderByFn("chars", "desc"), limitFn(1));
+                const snapshot = await getDocsFn(q);
+                if (snapshot.empty) return true;
+                const top = snapshot.docs[0].data();
+                const isEndless = modeTime === 0;
+                if (currentIndex > top.chars) return true;
+                if (currentIndex < top.chars) return false;
+                if (mistakes < top.mistakes) return true;
+                if (mistakes > top.mistakes) return false;
+                if (isEndless) {
+                    const myTime = Math.floor((Date.now() - startTime) / 1000);
+                    return myTime < (top.elapsed || Infinity);
+                }
+                return true;
+            } catch (e) {
+                console.error("1位判定エラー:", e);
+                return false;
+            }
+        }
+
+        function* generatePiDigits() {
+            let q = 1n; let r = 0n; let t = 1n; let k = 1n; let n = 3n; let l = 3n;
+            while (true) {
+                if (q * 4n + r - t < n * t) {
+                    yield n.toString();
+                    const nr = (r - n * t) * 10n;
+                    n = ((q * 3n + r) * 10n / t) - n * 10n;
+                    q = q * 10n; r = nr;
+                } else {
+                    const nr = (q * 2n + r) * l;
+                    const nn = (q * k * 7n + 2n + r * l) / (t * l);
+                    q = q * k; t = t * l; l += 2n; k += 1n; n = nn; r = nr;
+                }
+            }
+        }
+
+        let piGenerator, piString = "", currentIndex = 0;
+        let startTime = null, endTime = null, timerInterval = null, endTimeout = null;
+        let modeTime = 0, mistakes = 0, totalKeystrokes = 0;
+        let isPlaying = false, gameEnded = false, scrollOffset = 0;
+        let mistakePositions = new Set();
+        let hasRegistered = false;
+        let lastWPMUpdate = 0;
+
+        const displayEl = document.getElementById('pi-display');
+        const timeEl = document.getElementById('time');
+        const charsEl = document.getElementById('chars');
+        const mistakesEl = document.getElementById('mistakes');
+        const wpmEl = document.getElementById('wpm');
+        const accuracyEl = document.getElementById('accuracy');
+        const messageEl = document.getElementById('message');
+        const resetBtn = document.getElementById('main-reset');
+        const tweetBtn = document.getElementById('tweet-btn');
+        const rankingBtn = document.getElementById('ranking-btn');
+
+        const LINE_WIDTH = 50;
+        const VISIBLE_LINES = 3;
+        const SCROLL_TRIGGER = 100;
+        const INIT_DIGITS = 198;
+        const SCROLL_BATCH = 50;
+
+        function ensurePiString(minLength) {
+            while (piString.length < minLength) {
+                piString += piGenerator.next().value;
+            }
+        }
+
+        function updateDisplay() {
+            let html = '';
+            for (let i = 0; i < VISIBLE_LINES; i++) {
+                const lineStart = scrollOffset + i * LINE_WIDTH;
+                const lineText = piString.substring(lineStart, lineStart + LINE_WIDTH);
+                if (!lineText) break;
+                let lineHTML = '';
+                for (let j = 0; j < lineText.length; j++) {
+                    const pos = lineStart + j;
+                    const char = lineText[j];
+                    if (pos < currentIndex) {
+                        lineHTML += mistakePositions.has(pos) ? `<span class="typed-mistake">${char}</span>` : `<span class="typed">${char}</span>`;
+                    } else if (pos === currentIndex) {
+                        if (gameEnded) {
+                            lineHTML += mistakePositions.has(pos) ? `<span class="current-ended-mistake">${char}</span>` : `<span class="current-ended">${char}</span>`;
+                        } else {
+                            lineHTML += `<span class="current">${char}</span>`;
+                        }
+                    } else {
+                        lineHTML += `<span class="remaining">${char}</span>`;
+                    }
+                }
+                html += `<div class="line">${lineHTML}</div>`;
+            }
+            displayEl.innerHTML = html;
+        }
+
+        function updateTimeDisplay() {
+            if (!startTime) return;
+            const now = Date.now();
+            const elapsed = (now - startTime) / 1000;
+            timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : Math.floor(elapsed);
+            if (now - lastWPMUpdate >= 1000 && currentIndex >= 2) {
+                wpmEl.textContent = Math.round(currentIndex / (elapsed / 60));
+                lastWPMUpdate = now;
+            }
+        }
+
+        function updateAccuracy() {
+            if (totalKeystrokes === 0) { accuracyEl.textContent = "---"; return; }
+            accuracyEl.textContent = mistakes === 0 ? "100" : ((totalKeystrokes - mistakes) / totalKeystrokes * 100).toFixed(1);
+        }
+
+        function updateResetButton() {
+            if (!isPlaying && !gameEnded && currentIndex === 0) {
+                resetBtn.style.display = 'none';
+                rankingBtn.style.display = 'block';
+                rankingBtn.classList.remove('register-mode');
+                rankingBtn.textContent = "ランキングを見る（R）";
+                rankingBtn.onclick = () => showRanking();
+                tweetBtn.style.display = 'none';
+                return;
+            }
+
+            resetBtn.style.display = 'block';
+            tweetBtn.style.display = gameEnded ? 'block' : 'none';
+
+            if (gameEnded) {
+                resetBtn.textContent = "もう一度（Esc）";
+                const isNewRecord = isNewRecordForCurrentScore();
+                if (isNewRecord && !hasRegistered) {
+                    rankingBtn.style.display = 'block';
+                    rankingBtn.classList.add('register-mode');
+                    rankingBtn.textContent = "ランキング登録（R）";
+                    rankingBtn.onclick = showNameInputModal;
+                } else {
+                    rankingBtn.style.display = 'block';
+                    rankingBtn.classList.remove('register-mode');
+                    rankingBtn.textContent = "ランキングを見る（R）";
+                    rankingBtn.onclick = () => showRanking();
+                }
+            } else if (isPlaying) {
+                resetBtn.textContent = modeTime === 0 ? "終了（Ctrl+Enter）" : "中断（Esc）";
+                resetBtn.onclick = modeTime === 0 ? endGame : resetGame;
+                rankingBtn.style.display = 'none';
+            }
+        }
+
+        function isNewRecordForCurrentScore() {
+            const best = personalBest.get(modeTime) || {chars: 0, mistakes: 999999};
+            return currentIndex > best.chars || (currentIndex === best.chars && mistakes < best.mistakes);
+        }
+
+        function tweetResult() {
+            if (!gameEnded) return;
+            const timeStr = modeTime > 0 ? modeTime + "秒" : Math.floor((endTime || Date.now()) - startTime)/1000 + "秒";
+            let text = `TYπNGをプレイしました\n円周率を${timeStr}で${currentIndex}文字打ちました`;
+            if (hasRegistered && myRank !== null) text += `\n${myRank}位にランクインしました！`;
+            text += `\n#TYπNG\n${window.location.href}`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        async function registerScore(displayName) {
+            if (!currentUser || !db) {
+                handleRegisterFailure();
+                return;
+            }
+            const finalName = (displayName || '匿名').substring(0, 20);
+            try {
+                let elapsed = modeTime > 0 ? modeTime : Math.floor((Date.now() - startTime) / 1000);
+                await addDocFn(collectionFn(db, "scores"), {
+                    uid: currentUser.uid,
+                    displayName: finalName,
+                    mode: modeTime,
+                    chars: currentIndex,
+                    accuracy: parseFloat(accuracyEl.textContent) || 100,
+                    mistakes: mistakes,
+                    timestamp: new Date(),
+                    elapsed: elapsed
+                });
+                personalBest.set(modeTime, { chars: currentIndex, mistakes: mistakes, displayName: finalName });
+                hasRegistered = true;
+                const rank = await getMyRankAfterRegister();
+                if (rank !== null) myRank = rank;
+                messageEl.style.color = "#ffd700";
+                if (myRank === 1) {
+                    messageEl.innerHTML = `<span style="color:#ffd700;">新記録樹立！！！</span>`;
+                } else if (myRank !== null) {
+                    messageEl.textContent = `${finalName}さん、${myRank}位にランクインしました！`;
+                } else {
+                    messageEl.textContent = `${finalName}さん、登録完了！`;
+                }
+            } catch (e) {
+                console.error("登録失敗:", e);
+                handleRegisterFailure();
+            }
+            updateResetButton();
+        }
+
+        function handleRegisterFailure() {
+            messageEl.style.color = "#ff8888";
+            messageEl.textContent = "登録に失敗しました。時間をおいてもう一度お試しください。";
+            updateResetButton();
+        }
+
+        function showNameInputModal() {
+            const modal = document.getElementById('name-input-modal');
+            const input = document.getElementById('name-input');
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-open');
+            const best = personalBest.get(modeTime) || {displayName: ''};
+            input.value = best.displayName || '';
+            setTimeout(() => input.focus(), 100);
+            updateVisibilityForModals();
+        }
+
+        function hideNameInputModal() {
+            document.getElementById('name-input-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+            updateVisibilityForModals();
+        }
+
+        async function confirmNameInput() {
+            const input = document.getElementById('name-input');
+            let displayName = input.value.trim();
+            displayName = escapeHtml(displayName);
+            hideNameInputModal();
+            await registerScore(displayName);
+        }
+
+        function cancelNameInput() {
+            hideNameInputModal();
+        }
+
+        function handleRankingButton() {
+            if (gameEnded) {
+                if (isNewRecordForCurrentScore() && !hasRegistered) {
+                    showNameInputModal();
+                } else {
+                    showRanking();
+                }
+            } else {
+                showRanking();
+            }
+        }
+
+        async function endGame() {
+            isPlaying = false; 
+            gameEnded = true;
+            clearInterval(timerInterval);
+            if (endTimeout) clearTimeout(endTimeout);
+            endTime = Date.now();
+
+            if (currentIndex >= 3) {
+                const elapsed = (endTime - startTime) / 1000;
+                wpmEl.textContent = Math.round(currentIndex / (elapsed / 60));
+            }
+
+            const isNewRecord = isNewRecordForCurrentScore();
+            if (isNewRecord && personalBestLoaded) {
+                const isFirst = await isFirstPlaceNow();
+                let msg = "自己新記録樹立！";
+                if (isFirst) msg = "新記録樹立！！！";
+                messageEl.innerHTML = `<span style="color:#ffd700;">${msg}</span>`;
+                messageEl.style.color = "#ffd700";
+            } else {
+                messageEl.innerHTML = modeTime === 0 ? `Finish!` : `Time Up!`;
+                messageEl.style.color = "#ff0088";
+            }
+
+            updateDisplay();
+            setTimeout(updateDisplay, 10);
+            updateModeButtons();
+            updateResetButton();
+        }
+
+        function updateModeButtons() {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.disabled = isPlaying || gameEnded);
+        }
+
+        function formatTimestamp(ts) {
+            if (!ts) return '---';
+            const date = new Date(ts.seconds ? ts.seconds * 1000 : ts);
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+        }
+
+        async function showRanking(selectedMode = null) {
+            const modal = document.getElementById('ranking-modal');
+            const tbody = document.getElementById('ranking-body');
+            if (modal.style.display !== 'flex') {
+                modal.style.display = 'flex';
+                document.body.classList.add('modal-open');
+                updateVisibilityForModals();
+            }
+            const currentMode = selectedMode !== null ? selectedMode : modeTime;
+            const isEndless = currentMode === 0;
+            const tabs = document.getElementById('ranking-tabs');
+            tabs.innerHTML = '';
+            const modes = [{time:15,label:'15秒'},{time:30,label:'30秒'},{time:60,label:'60秒'},{time:0,label:'エンドレス'}];
+            modes.forEach(m => {
+                const btn = document.createElement('button');
+                btn.textContent = m.label;
+                btn.className = 'ranking-tab' + (currentMode === m.time ? ' active' : '');
+                btn.onclick = () => showRanking(m.time);
+                tabs.appendChild(btn);
+            });
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.6;padding:64px 0;">読み込み中...</td></tr>';
+            try {
+                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", currentMode), orderByFn("chars", "desc"), limitFn(50));
+                const snapshot = await getDocsFn(q);
+                const best = new Map();
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const key = d.uid;
+                    if (!best.has(key) || d.chars > best.get(key).chars) best.set(key, d);
+                });
+                let records = Array.from(best.values());
+                records.sort(getSortComparator(isEndless));
+                records = records.slice(0, 10);
+                let html = '';
+                if (records.length === 0) {
+                    html = '<tr><td colspan="7" style="text-align:center;opacity:0.7;padding:80px 0;">まだランキングがありません。<br>最初にプレイして登録しましょう！</td></tr>';
+                } else {
+                    let rank = 1;
+                    let prevTieKey = null;
+                    records.forEach((d, i) => {
+                        const currentTieKey = getTieKey(d, isEndless);
+                        const isTie = (i > 0 && currentTieKey === prevTieKey);
+                        if (!isTie) rank = i + 1;
+                        const playTime = d.elapsed != null ? `${d.elapsed}秒` : '---';
+                        const regTime = formatTimestamp(d.timestamp);
+                        html += `<tr><td>#${rank}</td><td>${escapeHtml(d.displayName || '匿名')}</td><td>${d.chars}</td><td>${d.mistakes}</td><td>${formatAccuracy(d.accuracy, d.mistakes)}%</td><td>${playTime}</td><td>${regTime}</td></tr>`;
+                        prevTieKey = currentTieKey;
+                    });
+                }
+                tbody.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="7" style="color:#ff8888;text-align:center;padding:80px 0;">読み込みエラー</td></tr>';
+            }
+        }
+
+        function hideRanking() {
+            document.getElementById('ranking-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+            updateVisibilityForModals();
+        }
+
+        function updateVisibilityForModals() {
+            const isModalOpen = (document.getElementById('ranking-modal').style.display === 'flex' || document.getElementById('name-input-modal').style.display === 'flex');
+            const privacy = document.getElementById('privacy-container');
+            const footer = document.querySelector('footer');
+            if (privacy) privacy.style.display = isModalOpen ? 'none' : 'block';
+            if (footer) footer.style.display = isModalOpen ? 'none' : 'block';
+        }
+
+        function startGame() {
+            if (isPlaying || gameEnded) return;
+            isPlaying = true;
+            startTime = Date.now();
+            endTime = null;
+            lastWPMUpdate = 0;
+            timerInterval = setInterval(updateTimeDisplay, 50);
+            if (modeTime > 0) endTimeout = setTimeout(endGame, modeTime * 1000);
+            messageEl.textContent = "Now tyπng...";
+            updateModeButtons();
+            updateResetButton();
+        }
+
+        function togglePrivacy() {
+            const content = document.getElementById('privacy-content');
+            if (content) {
+                const isHidden = content.style.display === 'none' || content.style.display === '';
+                content.style.display = isHidden ? 'block' : 'none';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const rankingModal = document.getElementById('ranking-modal');
+            const nameModal = document.getElementById('name-input-modal');
+            
+            if (e.key.toUpperCase() === 'P') {
+                togglePrivacy();
+                return;
+            }
+
+            if (nameModal.style.display === 'flex') {
+                if (e.key === "Escape") { cancelNameInput(); return; }
+                if (e.key === "Enter") { confirmNameInput(); return; }
+                return;
+            }
+
+            if (rankingModal.style.display === 'flex') {
+                if (e.key === "Escape") { hideRanking(); return; }
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                    const tabs = document.getElementById('ranking-tabs');
+                    const buttons = Array.from(tabs.querySelectorAll('button'));
+                    if (buttons.length === 0) return;
+                    let currentIdx = buttons.findIndex(btn => btn.classList.contains('active'));
+                    if (currentIdx === -1) currentIdx = 0;
+                    const nextIdx = e.key === "ArrowLeft" ? (currentIdx - 1 + buttons.length) % buttons.length : (currentIdx + 1) % buttons.length;
+                    buttons[nextIdx].click();
+                    return;
+                }
+            }
+
+            if (gameEnded) {
+                if (e.key === "Escape") { resetGame(); return; }
+                if (e.key.toLowerCase() === "x") { tweetResult(); return; }
+                if (e.key.toLowerCase() === "r") { handleRankingButton(); return; }
+                return;
+            }
+
+            if (!isPlaying && !gameEnded && e.key.toLowerCase() === "r") {
+                showRanking();
+                return;
+            }
+
+            if (e.ctrlKey && e.key === "Enter" && modeTime === 0 && isPlaying) {
+                endGame();
+                return;
+            }
+            if (e.key === "Escape" && !(modeTime === 0 && isPlaying)) {
+                resetGame();
+                return;
+            }
+
+            if (!isPlaying && !gameEnded && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+                const buttons = Array.from(document.querySelectorAll('.mode-btn'));
+                let idx = buttons.findIndex(b => b.classList.contains('active'));
+                idx = e.key === "ArrowLeft" ? (idx-1+buttons.length)%buttons.length : (idx+1)%buttons.length;
+                buttons.forEach(b => b.classList.remove('active'));
+                buttons[idx].classList.add('active');
+                modeTime = parseInt(buttons[idx].dataset.time);
+                timeEl.textContent = modeTime > 0 ? modeTime : "0";
+                resetGame();
+                loadPersonalBest(modeTime);
+                return;
+            }
+
+            if (e.ctrlKey || e.shiftKey || e.altKey || e.key.length !== 1) return;
+
+            const key = e.key;
+            if (key !== piString[currentIndex]) {
+                if (isPlaying) {
+                    totalKeystrokes++;
+                    mistakePositions.add(currentIndex);
+                    mistakes++;
+                    mistakesEl.textContent = mistakes;
+                    displayEl.classList.add('flash-pink');
+                    setTimeout(() => displayEl.classList.remove('flash-pink'), 100);
+                    updateAccuracy();
+                    updateResetButton();
+                }
+                return;
+            }
+
+            if (!isPlaying) startGame();
+
+            totalKeystrokes++;
+            currentIndex++;
+            charsEl.textContent = currentIndex;
+
+            if (currentIndex % LINE_WIDTH === 0 && currentIndex >= SCROLL_TRIGGER) {
+                scrollOffset = Math.floor((currentIndex - 1) / LINE_WIDTH) * LINE_WIDTH;
+                ensurePiString(piString.length + SCROLL_BATCH);
+            }
+            
+            updateDisplay();
+            updateAccuracy();
+            updateResetButton();
+        });
+
+        function initPi() {
+            piGenerator = generatePiDigits();
+            piString = piGenerator.next().value + ".";
+            currentIndex = scrollOffset = 0;
+            mistakePositions.clear();
+            ensurePiString(INIT_DIGITS);
+            updateDisplay();
+        }
+
+        function resetGame() {
+            isPlaying = gameEnded = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if (endTimeout) clearTimeout(endTimeout);
+            currentIndex = mistakes = totalKeystrokes = 0;
+            startTime = endTime = null;
+            scrollOffset = 0; 
+            mistakePositions.clear();
+            hasRegistered = false;
+            myRank = null;
+            lastWPMUpdate = 0;
+            initPi();
+            timeEl.textContent = modeTime > 0 ? modeTime : "0";
+            charsEl.textContent = "0";
+            mistakesEl.textContent = "0";
+            wpmEl.textContent = "---";
+            accuracyEl.textContent = "---";
+            messageEl.textContent = "Let's tyπng!";
+            messageEl.style.color = "#00ffcc";
+            updateModeButtons();
+            updateResetButton();
+        }
+
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (isPlaying || gameEnded) return;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                modeTime = parseInt(btn.dataset.time);
+                timeEl.textContent = modeTime > 0 ? modeTime : "0";
+                resetGame();
+                loadPersonalBest(modeTime);
+            });
+        });
+
+        document.getElementById('privacy-toggle').addEventListener('click', togglePrivacy);
+
+        window.onload = () => { 
+            initPi(); 
+            modeTime = 30;
+            timeEl.textContent = "30";
+            mistakesEl.textContent = "0";
+            document.body.focus(); 
+            updateModeButtons();
+            updateResetButton();
+            initFirebase();
+            updateVisibilityForModals();
+        };
+
+        window.resetGame = resetGame;
+        window.tweetResult = tweetResult;
+        window.showRanking = showRanking;
+        window.hideRanking = hideRanking;
+        window.confirmNameInput = confirmNameInput;
+        window.cancelNameInput = cancelNameInput;
+        window.showNameInputModal = showNameInputModal;
+        window.handleRankingButton = handleRankingButton;
+    </script>
+</body>
+</html>
