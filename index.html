@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.0.0 (更新日: 2026-06-08)
+  Version: 1.0.1 (更新日: 2026-06-08)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -11,6 +11,7 @@
     - ランキング管理：Firebase (Google)
   ChangeLog:
     - 2026-06-08 (v1.0.0) ・初版公開
+    - 2026-06-08 (v1.0.1) ・ランキング登録、表示のバグを修正
 -->
 <html lang="ja">
 <head>
@@ -399,7 +400,6 @@
     </style>
 </head>
 <body>
-    <!-- ここからHTML本体（前回と同じ） -->
     <h1>TY<ruby class="pi-ruby"><span style="color: #ff0088;">π</span><rt>PI</rt></ruby>NG</h1>
 
     <div class="mode-select">
@@ -510,7 +510,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.0.0
+        Version 1.0.1
     </footer>
 
     <script>
@@ -816,11 +816,13 @@
         async function registerScore(displayName) {
             if (!currentUser || !db) {
                 handleRegisterFailure();
-                return;
+                return false;
             }
             const finalName = (displayName || '匿名').substring(0, 20);
             try {
                 let elapsed = modeTime > 0 ? modeTime : Math.floor((Date.now() - startTime) / 1000);
+                
+                // 登録実行
                 await addDocFn(collectionFn(db, "scores"), {
                     uid: currentUser.uid,
                     displayName: finalName,
@@ -831,24 +833,39 @@
                     timestamp: new Date(),
                     elapsed: elapsed
                 });
+
                 personalBest.set(modeTime, { chars: currentIndex, mistakes: mistakes, displayName: finalName });
                 hasRegistered = true;
-                const rank = await getMyRankAfterRegister();
+
+                // === 登録直後に100ms間隔で最大10回リトライ ===
+                let rank = null;
+                for (let i = 0; i < 10; i++) {
+                    if (i > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    rank = await getMyRankAfterRegister();
+                    if (rank !== null) break;
+                }
                 if (rank !== null) myRank = rank;
+
                 messageEl.style.color = "#ffd700";
-                if (myRank === 1) {
-                    messageEl.innerHTML = `<span style="color:#ffd700;">新記録樹立！！！</span>`;
-                } else if (myRank !== null) {
+
+                if (myRank !== null) {
                     messageEl.textContent = `${finalName}さん、${myRank}位にランクインしました！`;
                 } else {
-                    messageEl.textContent = `${finalName}さん、登録完了！`;
+                    messageEl.textContent = `ランキング登録完了！`;
                 }
+                return true;   // 登録成功
+
             } catch (e) {
                 console.error("登録失敗:", e);
                 handleRegisterFailure();
+                return false;  // 登録失敗
+            } finally {
+                updateResetButton();
             }
-            updateResetButton();
         }
+        // =================================================================
 
         function handleRegisterFailure() {
             messageEl.style.color = "#ff8888";
@@ -959,7 +976,11 @@
             });
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.6;padding:64px 0;">読み込み中...</td></tr>';
             try {
-                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", currentMode), orderByFn("chars", "desc"), limitFn(50));
+                const q = queryFn(collectionFn(db, "scores"), 
+                                 whereFn("mode", "==", currentMode), 
+                                 orderByFn("chars", "desc"), 
+                                 limitFn(500));
+
                 const snapshot = await getDocsFn(q);
                 const best = new Map();
                 snapshot.forEach(doc => {
@@ -969,7 +990,7 @@
                 });
                 let records = Array.from(best.values());
                 records.sort(getSortComparator(isEndless));
-                records = records.slice(0, 10);
+                
                 let html = '';
                 if (records.length === 0) {
                     html = '<tr><td colspan="7" style="text-align:center;opacity:0.7;padding:80px 0;">まだランキングがありません。<br>最初にプレイして登録しましょう！</td></tr>';
