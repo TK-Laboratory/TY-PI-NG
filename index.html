@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.0.4 (更新日: 2026-06-11)
+  Version: 1.0.5 (更新日: 2026-06-11)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -15,6 +15,7 @@
     - 2026-06-10 (v1.0.2) ・プレイ終了時に時間表示が1秒のままになることがあるバグを修正
     - 2026-06-11 (v1.0.3) ・ランキング表示画面のレイアウトを改善
     - 2026-06-11 (v1.0.4) ・ランキング表示画面が横に見切れている際に横スクロールバーを表示
+    - 2026-06-11 (v1.0.5) ・エンドレスモード終了時のバグを修正
 -->
 <html lang="ja">
 <head>
@@ -513,7 +514,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.0.4
+        Version 1.0.5
     </footer>
 
     <script>
@@ -928,7 +929,7 @@
 
             endTime = Date.now();
             const elapsed = (endTime - startTime) / 1000;
-            timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : elapsed.Fixed(2);
+            timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : elapsed.toFixed(2);
             if (currentIndex >= 2) {
                 wpmEl.textContent = Math.round(currentIndex / (elapsed / 60));
             }
