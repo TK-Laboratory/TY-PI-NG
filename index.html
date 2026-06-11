@@ -14,6 +14,7 @@
     - 2026-06-08 (v1.0.1) ・ランキング登録、表示のバグを修正
     - 2026-06-10 (v1.0.2) ・プレイ終了時に時間表示が1秒のままになることがあるバグを修正
     - 2026-06-11 (v1.0.3) ・ランキング表示画面のレイアウトを改善
+    - 2026-06-11 (v1.0.4) ・ランキング表示画面が横に見切れている際に横スクロールバーを表示
 -->
 <html lang="ja">
 <head>
@@ -264,7 +265,7 @@
             border-radius: 0px;
             padding: 0 16px 16px 16px;
             overflow: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
             scrollbar-gutter: stable;
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
