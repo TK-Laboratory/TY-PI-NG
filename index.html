@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.1.0 (更新日: 2026-06-13)
+  Version: 1.1.1 (更新日: 2026-06-13)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -19,6 +19,7 @@
     - 2026-06-11 (v1.0.6) ・エンドレスモード終了時の表示を修正
     - 2026-06-12 (v1.0.7) ・プレイ終了時にカーソル位置の文字をミスしているとカーソルが消えるバグを修正
     - 2026-06-13 (v1.1.0) ・プレイ終了後、マウスオーバーで1文字ごとの入力時間を表示する機能を追加
+    - 2026-06-13 (v1.1.1) ・ランキング表示画面のレイアウトが崩れるバグを修正
 -->
 <html lang="ja">
 <head>
@@ -45,6 +46,14 @@
             text-shadow: 0 0 32px #00ffcc; 
         }
 
+        .ranking-title {
+            font-size: 3.36em;
+            text-shadow: 0 0 32px #00ffcc;
+            margin: 8px 0 20px 0;
+            text-align: center;
+            line-height: 1.1;
+        }
+
         .mode-select { 
             margin: 12px 0 20px; 
             display: flex; 
@@ -63,12 +72,30 @@
             cursor: pointer;
         }
         
+        .mode-btn.active { 
+            background: #ff0088; 
+            color: white; 
+            border-color: #ff66bb; 
+            transform: scale(1.08); 
+        }
+        
         .mode-btn:disabled {
             opacity: 0.4;
             cursor: default;
         }
 
-        .mode-btn.active { 
+        .ranking-tab {
+            padding: 12.8px 25.6px; 
+            font-size: 1.24em;
+            background: #220033; 
+            color: #ff99ee;
+            border: 2.4px solid #cc44aa; 
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 4.8px;
+        }
+        
+        .ranking-tab.active { 
             background: #ff0088; 
             color: white; 
             border-color: #ff66bb; 
@@ -295,6 +322,11 @@
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
         }
+        #ranking-container {
+            scrollbar-width: thin;
+            scrollbar-color: #00ffcc rgba(26, 0, 51, 0.9);
+        }
+
         #ranking-container::-webkit-scrollbar {
             width: 10px;
             height: 10px;
@@ -308,6 +340,59 @@
             background: #00ffcc;
             border-radius: 10px;
             border: 2px solid rgba(26, 0, 51, 0.95);
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+
+        #ranking-container::-webkit-scrollbar-thumb:hover {
+            background: #ff0088;
+            box-shadow: 0 0 12px rgba(255, 0, 136, 0.8);
+        }
+
+        #ranking-container::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+        #ranking-table {
+            width: fit-content;
+            margin: 0 auto;
+            border-collapse: collapse;
+            font-size: 1.16em;
+            line-height: 1.8;
+            table-layout: auto;
+        }
+        #ranking-table th, #ranking-table td {
+            padding: 6.4px 20px;
+            white-space: nowrap;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+        }
+        #ranking-table th {
+            color: #ffdd88;
+            font-weight: bold;
+            border-bottom: 1.6px solid #00ffcc;
+            padding: 16px 20px 9.6px 20px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            background: #1a0033;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(26, 0, 51, 0.85);
+        }
+        #ranking-table td {
+            color: #00ffcc;
+        }
+
+        #ranking-table th:nth-child(1), #ranking-table td:nth-child(1) { min-width: 30px; }
+        #ranking-table th:nth-child(2), #ranking-table td:nth-child(2) { min-width: 230px; }
+        #ranking-table th:nth-child(3), #ranking-table td:nth-child(3) { min-width: 60px; }
+        #ranking-table th:nth-child(4), #ranking-table td:nth-child(4) { min-width: 40px; }
+        #ranking-table th:nth-child(5), #ranking-table td:nth-child(5) { min-width: 60px; }
+        #ranking-table th:nth-child(6), #ranking-table td:nth-child(6) { min-width: 120px; }
+        #ranking-table th:nth-child(7), #ranking-table td:nth-child(7) { min-width: 180px; }
+
+        #ranking-table th:nth-child(3), #ranking-table th:nth-child(4),
+        #ranking-table th:nth-child(5), #ranking-table th:nth-child(6),
+        #ranking-table td:nth-child(3), #ranking-table td:nth-child(4),
+        #ranking-table td:nth-child(5), #ranking-table td:nth-child(6) {
+            text-align: right;
         }
 
         footer {
@@ -479,7 +564,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.1.0
+        Version 1.1.1
     </footer>
 
     <script>
