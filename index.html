@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.0.7 (更新日: 2026-06-12)
+  Version: 1.1.0 (更新日: 2026-06-13)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -18,6 +18,7 @@
     - 2026-06-11 (v1.0.5) ・エンドレスモード終了時のバグを修正
     - 2026-06-11 (v1.0.6) ・エンドレスモード終了時の表示を修正
     - 2026-06-12 (v1.0.7) ・プレイ終了時にカーソル位置の文字をミスしているとカーソルが消えるバグを修正
+    - 2026-06-13 (v1.1.0) ・プレイ終了後、マウスオーバーで1文字ごとの入力時間を表示する機能を追加
 -->
 <html lang="ja">
 <head>
@@ -44,14 +45,6 @@
             text-shadow: 0 0 32px #00ffcc; 
         }
 
-        .ranking-title {
-            font-size: 3.36em;
-            text-shadow: 0 0 32px #00ffcc;
-            margin: 8px 0 20px 0;
-            text-align: center;
-            line-height: 1.1;
-        }
-
         .mode-select { 
             margin: 12px 0 20px; 
             display: flex; 
@@ -70,30 +63,12 @@
             cursor: pointer;
         }
         
-        .mode-btn.active { 
-            background: #ff0088; 
-            color: white; 
-            border-color: #ff66bb; 
-            transform: scale(1.08); 
-        }
-        
         .mode-btn:disabled {
             opacity: 0.4;
-            cursor: not-allowed;
+            cursor: default;
         }
 
-        .ranking-tab {
-            padding: 12.8px 25.6px; 
-            font-size: 1.24em;
-            background: #220033; 
-            color: #ff99ee;
-            border: 2.4px solid #cc44aa; 
-            border-radius: 40px;
-            cursor: pointer;
-            margin: 4.8px;
-        }
-        
-        .ranking-tab.active { 
+        .mode-btn.active { 
             background: #ff0088; 
             color: white; 
             border-color: #ff66bb; 
@@ -176,6 +151,8 @@
             letter-spacing: 0;
             box-sizing: border-box;
             margin: 0 auto;
+            user-select: none;
+            position: relative;
         }
         
         #pi-display.flash-pink {
@@ -243,6 +220,14 @@
             z-index: -1 !important;
         }
 
+        /* プレイ終了後のみホバーエフェクトを有効化 */
+        body.game-ended .typed:hover, 
+        body.game-ended .typed-mistake:hover, 
+        body.game-ended .current-ended:hover, 
+        body.game-ended .current-ended-mistake:hover {
+            background: rgba(0, 255, 204, 0.25);
+        }
+
         body.modal-open .current,
         body.modal-open .current::before,
         body.modal-open .current-ended,
@@ -250,6 +235,22 @@
         body.modal-open .current-ended-mistake {
             display: none !important;
             animation: none !important;
+        }
+
+        #custom-tooltip {
+            position: fixed;
+            background: rgba(10, 0, 31, 0.98);
+            color: #00ffcc;
+            font-size: 1.12em;
+            padding: 7px 14px;
+            border: 2px solid #00ffcc;
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.7);
+            white-space: nowrap;
+            display: none;
+            font-family: 'Roboto Mono', monospace;
         }
 
         button#main-reset, #tweet-btn, #ranking-btn {
@@ -294,79 +295,19 @@
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
         }
-        #ranking-container {
-            scrollbar-width: thin;
-            scrollbar-color: #00ffcc rgba(26, 0, 51, 0.9);
-        }
-
         #ranking-container::-webkit-scrollbar {
             width: 10px;
             height: 10px;
         }
-
         #ranking-container::-webkit-scrollbar-track {
             background: rgba(26, 0, 51, 0.85);
             border-radius: 10px;
             margin: 4px 0;
         }
-
         #ranking-container::-webkit-scrollbar-thumb {
             background: #00ffcc;
             border-radius: 10px;
             border: 2px solid rgba(26, 0, 51, 0.95);
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
-        }
-
-        #ranking-container::-webkit-scrollbar-thumb:hover {
-            background: #ff0088;
-            box-shadow: 0 0 12px rgba(255, 0, 136, 0.8);
-        }
-
-        #ranking-container::-webkit-scrollbar-corner {
-            background: transparent;
-        }
-        #ranking-table {
-            width: fit-content;
-            margin: 0 auto;
-            border-collapse: collapse;
-            font-size: 1.16em;
-            line-height: 1.8;
-            table-layout: auto;
-        }
-        #ranking-table th, #ranking-table td {
-            padding: 6.4px 20px;
-            white-space: nowrap;
-            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
-        }
-        #ranking-table th {
-            color: #ffdd88;
-            font-weight: bold;
-            border-bottom: 1.6px solid #00ffcc;
-            padding: 16px 20px 9.6px 20px;
-            text-align: left;
-            position: sticky;
-            top: 0;
-            background: #1a0033;
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(26, 0, 51, 0.85);
-        }
-        #ranking-table td {
-            color: #00ffcc;
-        }
-
-        #ranking-table th:nth-child(1), #ranking-table td:nth-child(1) { min-width: 30px; }
-        #ranking-table th:nth-child(2), #ranking-table td:nth-child(2) { min-width: 230px; }
-        #ranking-table th:nth-child(3), #ranking-table td:nth-child(3) { min-width: 60px; }
-        #ranking-table th:nth-child(4), #ranking-table td:nth-child(4) { min-width: 40px; }
-        #ranking-table th:nth-child(5), #ranking-table td:nth-child(5) { min-width: 60px; }
-        #ranking-table th:nth-child(6), #ranking-table td:nth-child(6) { min-width: 120px; }
-        #ranking-table th:nth-child(7), #ranking-table td:nth-child(7) { min-width: 180px; }
-
-        #ranking-table th:nth-child(3), #ranking-table th:nth-child(4),
-        #ranking-table th:nth-child(5), #ranking-table th:nth-child(6),
-        #ranking-table td:nth-child(3), #ranking-table td:nth-child(4),
-        #ranking-table td:nth-child(5), #ranking-table td:nth-child(6) {
-            text-align: right;
         }
 
         footer {
@@ -448,6 +389,7 @@
     </div>
 
     <div id="pi-display"></div>
+    <div id="custom-tooltip"></div>
 
     <div style="display: flex; gap: 16px; margin-top: 14.4px; flex-wrap: wrap; justify-content: center;">
         <button id="main-reset" onclick="resetGame()">もう一度（Esc）</button>
@@ -537,7 +479,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.0.7
+        Version 1.1.0
     </footer>
 
     <script>
@@ -577,6 +519,9 @@
                 const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js");
 
                 const app = initializeApp(firebaseConfig);
+                if (location.hostname === "localhost" ) {
+                    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+                }
                 initializeAppCheck(app, {
                     provider: new ReCaptchaEnterpriseProvider("6LefLREtAAAAAIlfyrk_1SEJg7Vc7J6XSDTb9fE_"),
                     isTokenAutoRefreshEnabled: true
@@ -724,8 +669,10 @@
         let mistakePositions = new Set();
         let hasRegistered = false;
         let lastWPMUpdate = 0;
+        let keystrokeTimes = [];
 
         const displayEl = document.getElementById('pi-display');
+        const tooltipEl = document.getElementById('custom-tooltip');
         const timeEl = document.getElementById('time');
         const charsEl = document.getElementById('chars');
         const mistakesEl = document.getElementById('mistakes');
@@ -748,6 +695,31 @@
             }
         }
 
+        function getKeystrokeTimeTooltip(pos) {
+            if (!gameEnded || pos < 0 || pos >= keystrokeTimes.length) {
+                return '';
+            }
+            if ( pos === 0 ) {
+                return '0.000秒';
+            }
+            const prevTime = keystrokeTimes[pos - 1];
+            const currentTime = keystrokeTimes[pos];
+            if (!prevTime || !currentTime) return '';
+            const delta = (currentTime - prevTime) / 1000;
+            return delta.toFixed(3) + '秒';
+        }
+
+        function showTooltip(e, text) {
+            tooltipEl.textContent = text;
+            tooltipEl.style.display = 'block';
+            tooltipEl.style.left = (e.pageX + 18) + 'px';
+            tooltipEl.style.top = (e.pageY - 12) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltipEl.style.display = 'none';
+        }
+
         function updateDisplay() {
             let html = '';
             for (let i = 0; i < VISIBLE_LINES; i++) {
@@ -758,11 +730,23 @@
                 for (let j = 0; j < lineText.length; j++) {
                     const pos = lineStart + j;
                     const char = lineText[j];
+                    let extraAttr = '';
+                    
                     if (pos < currentIndex) {
-                        lineHTML += mistakePositions.has(pos) ? `<span class="typed-mistake">${char}</span>` : `<span class="typed">${char}</span>`;
+                        if (gameEnded) {
+                            const tooltip = getKeystrokeTimeTooltip(pos);
+                            if (tooltip) extraAttr = ` data-time="${tooltip}"`;
+                        }
+                        lineHTML += mistakePositions.has(pos) 
+                            ? `<span class="typed-mistake"${extraAttr}>${char}</span>` 
+                            : `<span class="typed"${extraAttr}>${char}</span>`;
                     } else if (pos === currentIndex) {
                         if (gameEnded) {
-                            lineHTML += mistakePositions.has(pos) ? `<span class="current-ended-mistake">${char}</span>` : `<span class="current-ended">${char}</span>`;
+                            const tooltip = getKeystrokeTimeTooltip(pos);
+                            if (tooltip) extraAttr = ` data-time="${tooltip}"`;
+                            lineHTML += mistakePositions.has(pos) 
+                                ? `<span class="current-ended-mistake"${extraAttr}>${char}</span>` 
+                                : `<span class="current-ended"${extraAttr}>${char}</span>`;
                         } else {
                             lineHTML += `<span class="current">${char}</span>`;
                         }
@@ -774,6 +758,30 @@
             }
             displayEl.innerHTML = html;
         }
+
+        displayEl.addEventListener('mouseover', (e) => {
+            if (!gameEnded) return;
+            const span = e.target.closest('[data-time]');
+            if (span && span.dataset.time) {
+                showTooltip(e, span.dataset.time);
+            }
+        });
+
+        displayEl.addEventListener('mouseout', (e) => {
+            if (!gameEnded) return;
+            const span = e.target.closest('[data-time]');
+            if (!span || !e.relatedTarget || !e.relatedTarget.closest('[data-time]')) {
+                hideTooltip();
+            }
+        });
+
+        displayEl.addEventListener('mousemove', (e) => {
+            if (!gameEnded) return;
+            if (tooltipEl.style.display === 'block') {
+                tooltipEl.style.left = (e.pageX + 18) + 'px';
+                tooltipEl.style.top = (e.pageY - 12) + 'px';
+            }
+        });
 
         function updateTimeDisplay() {
             if (!startTime) return;
@@ -850,7 +858,6 @@
             try {
                 let elapsed = modeTime > 0 ? modeTime : Math.floor((Date.now() - startTime) / 1000);
                 
-                // 登録実行
                 await addDocFn(collectionFn(db, "scores"), {
                     uid: currentUser.uid,
                     displayName: finalName,
@@ -865,35 +872,29 @@
                 personalBest.set(modeTime, { chars: currentIndex, mistakes: mistakes, displayName: finalName });
                 hasRegistered = true;
 
-                // === 登録直後に100ms間隔で最大10回リトライ ===
                 let rank = null;
                 for (let i = 0; i < 10; i++) {
-                    if (i > 0) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
+                    if (i > 0) await new Promise(resolve => setTimeout(resolve, 100));
                     rank = await getMyRankAfterRegister();
                     if (rank !== null) break;
                 }
                 if (rank !== null) myRank = rank;
 
                 messageEl.style.color = "#ffd700";
-
                 if (myRank !== null) {
                     messageEl.textContent = `${finalName}さん、${myRank}位にランクインしました！`;
                 } else {
                     messageEl.textContent = `ランキング登録完了！`;
                 }
-                return true;   // 登録成功
-
+                return true;
             } catch (e) {
                 console.error("登録失敗:", e);
                 handleRegisterFailure();
-                return false;  // 登録失敗
+                return false;
             } finally {
                 updateResetButton();
             }
         }
-        // =================================================================
 
         function handleRegisterFailure() {
             messageEl.style.color = "#ff8888";
@@ -945,18 +946,13 @@
         async function endGame() {
             isPlaying = false; 
             gameEnded = true;
+            document.body.classList.add('game-ended'); // ホバーエフェクト有効化
             clearInterval(timerInterval);
-            if (endTimeout) {
-                clearTimeout(endTimeout);
-            }
+            if (endTimeout) clearTimeout(endTimeout);
 
             endTime = Date.now();
             const elapsed = (endTime - startTime) / 1000;
-            if (modeTime == 0 ) {
-                timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : Math.floor(elapsed);
-            } else {
-                timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : Math.round(elapsed)
-            }
+            timeEl.textContent = modeTime > 0 ? Math.max(0, Math.ceil(modeTime - elapsed)) : Math.floor(elapsed);
             if (currentIndex >= 2) {
                 wpmEl.textContent = Math.round(currentIndex / (elapsed / 60));
             }
@@ -1011,11 +1007,7 @@
             });
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.6;padding:64px 0;">読み込み中...</td></tr>';
             try {
-                const q = queryFn(collectionFn(db, "scores"), 
-                                 whereFn("mode", "==", currentMode), 
-                                 orderByFn("chars", "desc"), 
-                                 limitFn(500));
-
+                const q = queryFn(collectionFn(db, "scores"), whereFn("mode", "==", currentMode), orderByFn("chars", "desc"), limitFn(500));
                 const snapshot = await getDocsFn(q);
                 const best = new Map();
                 snapshot.forEach(doc => {
@@ -1069,6 +1061,7 @@
             startTime = Date.now();
             endTime = null;
             lastWPMUpdate = 0;
+            keystrokeTimes = [startTime];
             timerInterval = setInterval(updateTimeDisplay, 50);
             if (modeTime > 0) endTimeout = setTimeout(endGame, modeTime * 1000);
             messageEl.textContent = "Now tyπng...";
@@ -1167,6 +1160,7 @@
             if (!isPlaying) startGame();
 
             totalKeystrokes++;
+            keystrokeTimes[currentIndex] = Date.now();
             currentIndex++;
             charsEl.textContent = currentIndex;
 
@@ -1185,12 +1179,14 @@
             piString = piGenerator.next().value + ".";
             currentIndex = scrollOffset = 0;
             mistakePositions.clear();
+            keystrokeTimes = [];
             ensurePiString(INIT_DIGITS);
             updateDisplay();
         }
 
         function resetGame() {
             isPlaying = gameEnded = false;
+            document.body.classList.remove('game-ended'); // ホバーエフェクト無効化
             if (timerInterval) clearInterval(timerInterval);
             if (endTimeout) clearTimeout(endTimeout);
             currentIndex = mistakes = totalKeystrokes = 0;
@@ -1200,6 +1196,8 @@
             hasRegistered = false;
             myRank = null;
             lastWPMUpdate = 0;
+            keystrokeTimes = [];
+            hideTooltip();
             initPi();
             timeEl.textContent = modeTime > 0 ? modeTime : "0";
             charsEl.textContent = "0";
