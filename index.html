@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.2.0 (更新日: 2026-06-13)
+  Version: 1.2.1 (更新日: 2026-06-13)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -21,6 +21,7 @@
     - 2026-06-13 (v1.1.0) ・プレイ終了後、マウスオーバーで1文字ごとの入力時間を表示する機能を追加
     - 2026-06-13 (v1.1.1) ・ランキング表示画面のレイアウトが崩れるバグを修正
     - 2026-06-13 (v1.2.0) ・プレイ終了後、スクロールボタンを追加
+    - 2026-06-13 (v1.2.1) ・ランキング表示画面のバグを修正
 -->
 <html lang="ja">
 <head>
@@ -615,7 +616,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.2.0
+        Version 1.2.1
     </footer>
 
     <script>
@@ -1229,6 +1230,12 @@
             const footer = document.querySelector('footer');
             if (privacy) privacy.style.display = isModalOpen ? 'none' : 'block';
             if (footer) footer.style.display = isModalOpen ? 'none' : 'block';
+            if (isModalOpen) {
+                scrollUpBtn.style.display = 'none';
+                scrollDownBtn.style.display = 'none';
+            } else {
+                updateScrollButtons();
+            }
         }
 
         function startGame() {
