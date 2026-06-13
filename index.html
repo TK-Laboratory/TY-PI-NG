@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.2.1 (更新日: 2026-06-13)
+  Version: 1.2.2 (更新日: 2026-06-13)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -22,6 +22,7 @@
     - 2026-06-13 (v1.1.1) ・ランキング表示画面のレイアウトが崩れるバグを修正
     - 2026-06-13 (v1.2.0) ・プレイ終了後、スクロールボタンを追加
     - 2026-06-13 (v1.2.1) ・ランキング表示画面のバグを修正
+    - 2026-06-13 (v1.2.2) ・ランキング表示画面のバグを修正
 -->
 <html lang="ja">
 <head>
@@ -373,6 +374,9 @@
             scrollbar-gutter: stable;
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
+            
+            scrollbar-width: thin;
+            scrollbar-color: #00ffcc rgba(26, 0, 51, 0.85);
         }
 
         #ranking-container::-webkit-scrollbar {
@@ -389,11 +393,12 @@
             border-radius: 10px;
             border: 2px solid rgba(26, 0, 51, 0.95);
             box-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+            min-height: 40px;
         }
 
         #ranking-container::-webkit-scrollbar-thumb:hover {
-            background: #ff0088;
-            box-shadow: 0 0 12px rgba(255, 0, 136, 0.8);
+            background: #00ffdd;
+            box-shadow: 0 0 12px rgba(0, 255, 221, 0.9);
         }
 
         #ranking-table {
