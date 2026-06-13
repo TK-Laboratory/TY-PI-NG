@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.2.5 (更新日: 2026-06-13)
+  Version: 1.2.6 (更新日: 2026-06-13)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -26,6 +26,7 @@
     - 2026-06-13 (v1.2.3) ・ランキング表示画面のバグを修正
     - 2026-06-13 (v1.2.4) ・ランキング表示画面のバグを修正
     - 2026-06-13 (v1.2.5) ・ランキング表示画面のバグを修正
+    - 2026-06-13 (v1.2.6) ・ランキング表示画面のレイアウトを改善
 -->
 <html lang="ja">
 <head>
@@ -371,18 +372,19 @@
             background: rgba(10, 0, 31, 0.6);
             border: 2.4px solid #00ffcc;
             border-radius: 0px;
-            padding: 0 16px 16px 16px;
+            padding: 0px 0px 0px 0px;
             overflow: auto;
             overflow-x: auto;
             scrollbar-gutter: stable;
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
-            scrollbar-color: #00ffcc;
+            scrollbar-color: #00ffcc (26, 0, 51, 0.85);
         }
 
         #ranking-container::-webkit-scrollbar {
             width: 10px;
             height: 10px;
+            -webkit-appearance: none;
         }
         #ranking-container::-webkit-scrollbar-track {
             background: rgba(26, 0, 51, 0.85);
@@ -393,14 +395,15 @@
             background: #00cc99;
             border-radius: 10px;
             border: 2px solid rgba(26, 0, 51, 0.95);
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
             min-height: 40px;
         }
 
         #ranking-container::-webkit-scrollbar-thumb:hover {
             background: #00ffcc;
         }
-
+        #ranking-container::-webkit-scrollbar-corner {
+            background: rgba(26, 0, 51, 0.85);
+        }
         #ranking-table {
             width: fit-content;
             margin: 0 auto;
@@ -621,7 +624,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.2.5
+        Version 1.2.6
     </footer>
 
     <script>
