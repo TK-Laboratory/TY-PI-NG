@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
   「TYπNG」
-  Version: 1.2.7 (更新日: 2026-06-13)
+  Version: 1.2.8 (更新日: 2026-06-14)
   Author: TK Lab.(@TK_Lab_)
   Description: 円周率を打つだけのタイピングゲーム。
   License: このコードは個人利用・改変・再配布自由ですが、商用利用はご遠慮ください。クレジット表記を削除しないでください。
@@ -28,6 +28,7 @@
     - 2026-06-13 (v1.2.5) ・ランキング表示画面のバグを修正
     - 2026-06-13 (v1.2.6) ・ランキング表示画面のレイアウトを改善
     - 2026-06-13 (v1.2.7) ・ランキング表示画面のレイアウトを改善
+    - 2026-06-13 (v1.2.8) ・ランキング表示画面のレイアウトを改善
 -->
 <html lang="ja">
 <head>
@@ -376,36 +377,39 @@
             padding: 0px 0px 0px 0px;
             overflow: auto;
             overflow-x: auto;
-            scrollbar-gutter: stable;
+            scrollbar-gutter: stable both-edges;
             box-sizing: border-box;
             box-shadow: 0 0 24px rgba(0, 255, 204, 0.3);
             scrollbar-width: thin;
             scrollbar-color: #00ffcc rgba(26, 0, 51, 0.85);
         }
 
-        #ranking-container::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-            -webkit-appearance: none;
-        }
-        #ranking-container::-webkit-scrollbar-track {
-            background: rgba(26, 0, 51, 0.85);
-            border-radius: 10px;
-            margin: 4px 0;
-        }
-        #ranking-container::-webkit-scrollbar-thumb {
-            background: #00cc99 !important;
-            border-radius: 10px;
-            border: 2px solid rgba(26, 0, 51, 0.95);
-            min-height: 40px;
-        }
-
-        #ranking-container::-webkit-scrollbar-thumb:hover {
-            background: #00ffcc !important;
-        }
         #ranking-container::-webkit-scrollbar-corner {
             background: rgba(26, 0, 51, 0.85);
         }
+@supports not (scrollbar-color: #00ffcc rgba(26, 0, 51, 0.85)) {
+#ranking-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    #ranking-container::-webkit-scrollbar-track {
+        background: rgba(26, 0, 51, 0.85);
+        border-radius: 4px;
+    }
+
+    #ranking-container::-webkit-scrollbar-thumb {
+        background: #00ff00 !important;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    #ranking-container::-webkit-scrollbar-thumb:hover {
+        background: #ff0000 !inportant;     /* ← ここを調整 */
+    }
+}
+
+
         #ranking-table {
             width: fit-content;
             margin: 0 auto;
@@ -435,13 +439,27 @@
             color: #00ffcc;
         }
 
-        #ranking-table th:nth-child(1), #ranking-table td:nth-child(1) { min-width: 30px; }
-        #ranking-table th:nth-child(2), #ranking-table td:nth-child(2) { min-width: 230px; }
-        #ranking-table th:nth-child(3), #ranking-table td:nth-child(3) { min-width: 60px; }
-        #ranking-table th:nth-child(4), #ranking-table td:nth-child(4) { min-width: 40px; }
-        #ranking-table th:nth-child(5), #ranking-table td:nth-child(5) { min-width: 60px; }
-        #ranking-table th:nth-child(6), #ranking-table td:nth-child(6) { min-width: 120px; }
-        #ranking-table th:nth-child(7), #ranking-table td:nth-child(7) { min-width: 180px; }
+        #ranking-table th:nth-child(1), #ranking-table td:nth-child(1) {
+            width: 30px; min-width: 30px; max-width:30px;
+        }
+        #ranking-table th:nth-child(2), #ranking-table td:nth-child(2) {
+            width: 230px; min-width: 230px; max-width:230px
+        }
+        #ranking-table th:nth-child(3), #ranking-table td:nth-child(3) {
+            width: 60px; min-width: 60px; max-width:60;
+        }
+        #ranking-table th:nth-child(4), #ranking-table td:nth-child(4) {
+            width: 40px; min-width: 40px; max-width: 40px;
+        }
+        #ranking-table th:nth-child(5), #ranking-table td:nth-child(5) {
+            width: 60px; min-width: 60px; max-width: 60px;
+        }
+        #ranking-table th:nth-child(6), #ranking-table td:nth-child(6) {
+            width: 120px; min-width: 120px; max-width: 120px;
+        }
+        #ranking-table th:nth-child(7), #ranking-table td:nth-child(7) {
+            width: 180px; min-width: 180px; max-width: 180px;
+        }
 
         #ranking-table th:nth-child(3), #ranking-table th:nth-child(4),
         #ranking-table th:nth-child(5), #ranking-table th:nth-child(6),
@@ -626,7 +644,7 @@
         制作者：TK Lab.（<a href="https://x.com/TK_Lab_" target="_blank" rel="noopener noreferrer">@TK_Lab_</a>）<br>
         ご質問・ご要望はTwitter(現𝕏)までご連絡ください。<br>
         プレイ動画やスクリーンショットの投稿・配信は自由です。<br>
-        Version 1.2.7
+        Version 1.2.8
     </footer>
 
     <script>
